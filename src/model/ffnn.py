@@ -1,0 +1,85 @@
+import pickle
+import numpy as np
+from src.layers.layer import Layer
+from src.activation import relu, sigmoid, tanh, linear, softmax
+
+activation_map = {
+    "relu": (relu.activation, relu.derivative),
+    "sigmoid": (sigmoid.activation, sigmoid.derivative),
+    "tanh": (tanh.activation, tanh.derivative),
+    "linear": (linear.activation, linear.derivative),
+    "softmax": (softmax.activation, softmax.derivative),
+}
+
+class FFNN:
+    def __init__(self, layer_sizes, activations):
+        assert len(layer_sizes) - 1 == len(activations), "Number of layers and activations should match"
+        
+        self.layers = []
+        self.activations = []
+        self.input_cache = None
+
+        for i in range(len(layer_sizes) - 1):
+            layer = Layer(input_size=layer_sizes[i], output_size=layer_sizes[i+1])
+            self.layers.append(layer)
+
+            act_func, act_deriv = activation_map[activations[i]]
+            self.activations.append((act_func, act_deriv))
+
+    def forward(self, X):
+        """Forward propagation"""
+        self.input_cache = X
+        a = X
+        for layer, (act_func, _) in zip(self.layers, self.activations):
+            z = layer.forward(a)
+            a = act_func(z)
+            layer.z = z
+            layer.a = a
+        return a
+
+    def backward(self, y_true, loss_fn, loss_deriv):
+        """Backward propagation"""
+        batch_size = y_true.shape[1]
+
+        last_idx = len(self.layers) - 1
+        last_layer = self.layers[last_idx]
+        last_activation_deriv = self.activations[last_idx][1]
+
+        dz = loss_deriv(y_true, last_layer.a) * last_activation_deriv(last_layer.z)
+        da = dz
+
+        last_layer.grad_weights = np.dot(da, self.layers[last_idx - 1].a.T) / batch_size
+        last_layer.grad_bias = np.sum(da, axis=1, keepdims=True) / batch_size
+
+        for i in reversed(range(len(self.layers) - 1)):
+            current_layer = self.layers[i]
+            next_layer = self.layers[i + 1]
+
+            activation_deriv = self.activations[i][1]
+            dz = np.dot(next_layer.weights.T, da) * activation_deriv(current_layer.z)
+            da = dz
+
+            input_activation = self.layers[i - 1].a if i > 0 else self.input_cache  # input awal
+            current_layer.grad_weights = np.dot(dz, input_activation.T) / batch_size
+            current_layer.grad_bias = np.sum(dz, axis=1, keepdims=True) / batch_size
+
+    def update_weights(self, lr):
+        """Update weights and biases on each layer"""
+        for layer in self.layers:
+            layer.weights -= lr * layer.grad_weights
+            layer.bias -= lr * layer.grad_bias
+
+    def save(self, filename):
+        """
+        Save model to pickle file
+        """
+        with open(filename, 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(filename):
+        """
+        Load model from pickle file
+        """
+        with open(filename, 'rb') as f:
+            return pickle.load(f)
