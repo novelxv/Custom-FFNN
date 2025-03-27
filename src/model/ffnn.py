@@ -3,6 +3,7 @@ import numpy as np
 from src.layers.layer import Layer
 from src.activation import relu, sigmoid, tanh, linear, softmax
 from src.bonus.activation import gelu, swish
+from src.bonus.normalization import RMSnorm
 
 activation_map = {
     "relu": (relu.activation, relu.derivative),
@@ -15,12 +16,17 @@ activation_map = {
 }
 
 class FFNN:
-    def __init__(self, layer_sizes, activations):
+    def __init__(self, layer_sizes, activations, regularization="none", l=0.01, rmsnorm=False, epsilon=1e-7):
         assert len(layer_sizes) - 1 == len(activations), "Number of layers and activations should match"
         
         self.layers = []
         self.activations = []
         self.input_cache = None
+
+        # init for regularization
+        self.regularization = regularization
+        self.l = l
+        
 
         for i in range(len(layer_sizes) - 1):
             layer = Layer(input_size=layer_sizes[i], output_size=layer_sizes[i+1])
@@ -28,16 +34,29 @@ class FFNN:
 
             act_func, act_deriv = activation_map[activations[i]]
             self.activations.append((act_func, act_deriv))
+        
+        # init for normalization
+        self.rmsnorm = rmsnorm
+        self.epsilon = epsilon
+        self.gammas = []
+        if self.rmsnorm:
+            self.gammas = [np.ones((layer_sizes[i+1], 1)) for i in range(len(layer_sizes) - 1)]
 
     def forward(self, X):
         """Forward propagation"""
         self.input_cache = X
         a = X
+        i = 0
         for layer, (act_func, _) in zip(self.layers, self.activations):
             z = layer.forward(a)
             a = act_func(z)
+
+            if self.rmsnorm:
+                a = RMSnorm(a, self.gammas[i], self.epsilon)
+
             layer.z = z
             layer.a = a
+            i += 1
         return a
 
     def backward(self, y_true, loss_fn, loss_deriv):
@@ -69,6 +88,11 @@ class FFNN:
     def update_weights(self, lr):
         """Update weights and biases on each layer"""
         for layer in self.layers:
+            if self.reg == "l1":
+                layer.weights -= lr * (self.l * np.sign(layer.weights))
+            elif self.reg == "l2":
+                layer.weights -= lr * (self.l * 2 * layer.weights)
+
             layer.weights -= lr * layer.grad_weights
             layer.bias -= lr * layer.grad_bias
 

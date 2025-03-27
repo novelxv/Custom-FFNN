@@ -18,7 +18,7 @@ def initialize_weights(method, shape, **kwargs):
         std = np.sqrt(var)
         return np.random.normal(mean, std, shape)
     elif method == "xavier":
-        xmethod = kwargs.get("xmethod")
+        xmethod = kwargs.get("xmethod", "uniform")
         return xavier(shape, xmethod)
     elif method == "he":
         return he(shape)
