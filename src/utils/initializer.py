@@ -1,3 +1,5 @@
+from src.bonus.init.xavier import xavier
+from src.bonus.init.he import he
 import numpy as np
 
 def initialize_weights(method, shape, **kwargs):
@@ -15,5 +17,10 @@ def initialize_weights(method, shape, **kwargs):
         var = kwargs.get("variance", 1.0)
         std = np.sqrt(var)
         return np.random.normal(mean, std, shape)
+    elif method == "xavier":
+        xmethod = kwargs.get("xmethod")
+        return xavier(shape, xmethod)
+    elif method == "he":
+        return he(shape)
     else:
         raise ValueError(f"Unknown initialization method: {method}")

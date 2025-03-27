@@ -7,7 +7,10 @@ class Layer:
         self.output_size = output_size
 
         self.weights = initialize_weights(init_method, (output_size, input_size), **init_params)
-        self.bias = initialize_weights(init_method, (output_size, 1), **init_params)
+        if (init_method == "he"):
+            self.bias = 0
+        else:
+            self.bias = initialize_weights(init_method, (output_size, 1), **init_params)
 
         self.z = None
         self.a = None

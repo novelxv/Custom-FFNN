@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 from src.layers.layer import Layer
 from src.activation import relu, sigmoid, tanh, linear, softmax
+from src.bonus.activation import gelu, swish
 
 activation_map = {
     "relu": (relu.activation, relu.derivative),
@@ -9,6 +10,8 @@ activation_map = {
     "tanh": (tanh.activation, tanh.derivative),
     "linear": (linear.activation, linear.derivative),
     "softmax": (softmax.activation, softmax.derivative),
+    "gelu": (gelu.activation, gelu.derivative),
+    "swish": (swish.activation, swish.derivative),
 }
 
 class FFNN:
