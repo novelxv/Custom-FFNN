@@ -16,7 +16,7 @@ activation_map = {
 }
 
 class FFNN:
-    def __init__(self, layer_sizes, activations, learning_rate, regularization="none", rmsnorm=False, epsilon=1e-7):
+    def __init__(self, layer_sizes, activations, learning_rate, regularization="none", rmsnorm=False, epsilon=1e-7, init_method="uniform", init_params={}):
         assert len(layer_sizes) - 1 == len(activations), "Number of layers and activations should match"
         
         self.layers = []
@@ -29,7 +29,7 @@ class FFNN:
         
 
         for i in range(len(layer_sizes) - 1):
-            layer = Layer(input_size=layer_sizes[i], output_size=layer_sizes[i+1])
+            layer = Layer(input_size=layer_sizes[i], output_size=layer_sizes[i+1], init_method=init_method, init_params=init_params)
             self.layers.append(layer)
 
             act_func, act_deriv = activation_map[activations[i]]

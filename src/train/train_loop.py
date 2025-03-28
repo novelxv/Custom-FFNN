@@ -1,7 +1,6 @@
 import numpy as np
-from tqdm import tqdm 
-
-
+from tqdm import tqdm
+import json
 
 def train(model, X_train, y_train, X_val, y_val, loss_fn, loss_deriv, batch_size=64, learning_rate=0.01, epochs=10, verbose=1):
     num_samples = X_train.shape[1]
@@ -49,6 +48,8 @@ def train(model, X_train, y_train, X_val, y_val, loss_fn, loss_deriv, batch_size
         
         if verbose == 1:
             print(f"Epoch {epoch+1}/{epochs} - Train Loss: {avg_train_loss:.6f}, Val Loss: {val_loss:.6f}")
+        
+    with open("training_history.json", "w") as f:
+        json.dump(history, f, indent=2)
     
     return history
-
