@@ -88,9 +88,9 @@ class FFNN:
     def update_weights(self, lr):
         """Update weights and biases on each layer"""
         for layer in self.layers:
-            if self.reg == "l1":
+            if self.regularization == "l1":
                 layer.weights -= lr * (self.l * np.sign(layer.weights))
-            elif self.reg == "l2":
+            elif self.regularization == "l2":
                 layer.weights -= lr * (self.l * 2 * layer.weights)
 
             layer.weights -= lr * layer.grad_weights
