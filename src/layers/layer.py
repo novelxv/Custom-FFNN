@@ -1,5 +1,5 @@
 import numpy as np
-from src.utils.initializer import initialize_weights
+from utils.initializer import initialize_weights
 
 class Layer:
     def __init__(self, input_size, output_size, init_method="uniform", init_params={}):

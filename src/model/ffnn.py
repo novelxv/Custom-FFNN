@@ -1,9 +1,9 @@
 import pickle
 import numpy as np
-from src.layers.layer import Layer
-from src.activation import relu, sigmoid, tanh, linear, softmax
-from src.bonus.activation import gelu, swish
-from src.bonus.normalization import RMSnorm
+from layers.layer import Layer
+from activation import relu, sigmoid, tanh, linear, softmax
+from bonus.activation import gelu, swish
+from bonus.normalization import RMSnorm
 
 activation_map = {
     "relu": (relu.activation, relu.derivative),
@@ -16,7 +16,7 @@ activation_map = {
 }
 
 class FFNN:
-    def __init__(self, layer_sizes, activations, regularization="none", l=0.01, rmsnorm=False, epsilon=1e-7):
+    def __init__(self, layer_sizes, activations, learning_rate, regularization="none", rmsnorm=False, epsilon=1e-7):
         assert len(layer_sizes) - 1 == len(activations), "Number of layers and activations should match"
         
         self.layers = []
@@ -25,7 +25,7 @@ class FFNN:
 
         # init for regularization
         self.regularization = regularization
-        self.l = l
+        self.l = learning_rate
         
 
         for i in range(len(layer_sizes) - 1):

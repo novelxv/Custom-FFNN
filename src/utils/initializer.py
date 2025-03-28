@@ -1,5 +1,5 @@
-from src.bonus.init.xavier import xavier
-from src.bonus.init.he import he
+from bonus.init.xavier import xavier
+from bonus.init.he import he
 import numpy as np
 
 def initialize_weights(method, shape, **kwargs):
