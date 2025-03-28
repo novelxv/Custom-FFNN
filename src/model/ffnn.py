@@ -60,17 +60,20 @@ class FFNN:
         return a
 
     def backward(self, y_true, loss_fn, loss_deriv):
-        """Backward propagation"""
         batch_size = y_true.shape[1]
-
         last_idx = len(self.layers) - 1
         last_layer = self.layers[last_idx]
-        last_activation_deriv = self.activations[last_idx][1]
 
-        dz = loss_deriv(y_true, last_layer.a) * last_activation_deriv(last_layer.z)
+        if self.activations[last_idx][0].__module__.endswith("softmax") and loss_fn.__module__.endswith("categorical_crossentropy"):
+            dz = last_layer.a - y_true
+        else:
+            last_activation_deriv = self.activations[last_idx][1]
+            dz = loss_deriv(y_true, last_layer.a) * last_activation_deriv(last_layer.z)
+
         da = dz
 
-        last_layer.grad_weights = np.dot(da, self.layers[last_idx - 1].a.T) / batch_size
+        prev_a = self.layers[last_idx - 1].a if last_idx > 0 else self.input_cache
+        last_layer.grad_weights = np.dot(da, prev_a.T) / batch_size
         last_layer.grad_bias = np.sum(da, axis=1, keepdims=True) / batch_size
 
         for i in reversed(range(len(self.layers) - 1)):
@@ -81,7 +84,7 @@ class FFNN:
             dz = np.dot(next_layer.weights.T, da) * activation_deriv(current_layer.z)
             da = dz
 
-            input_activation = self.layers[i - 1].a if i > 0 else self.input_cache  # input awal
+            input_activation = self.layers[i - 1].a if i > 0 else self.input_cache
             current_layer.grad_weights = np.dot(dz, input_activation.T) / batch_size
             current_layer.grad_bias = np.sum(dz, axis=1, keepdims=True) / batch_size
 

@@ -1,5 +1,6 @@
 import numpy as np
-from math import erf, pi
+from math import pi
+from scipy.special import erf
 
 def activation(x):
     return 0.5*x*(1 + erf(x/(2**0.5)))
